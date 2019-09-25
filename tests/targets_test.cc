@@ -90,14 +90,14 @@ static void verify_targets(const std::string& targets_str, bool check_signatures
 }
 
 TEST(tiny_targets, parse_simple) {
-  Json::Value targets_json = Utils::parseJSONFile("partial/tests/repo/repo/director/targets.json");
+  Json::Value targets_json = Utils::parseJSONFile("tests/repo/repo/director/targets.json");
   std::string targets_str = Utils::jsonToCanonicalStr(targets_json);
 
   verify_targets(targets_str, true);
 }
 
 TEST(tiny_targets, parse_with_garbage) {
-  Json::Value targets_json = Utils::parseJSONFile("partial/tests/repo/repo/director/targets.json");
+  Json::Value targets_json = Utils::parseJSONFile("tests/repo/repo/director/targets.json");
   targets_json["newtopfield"]["key"] = "value";
   targets_json["signed"]["newsignedfield"]["key"] = "value";
   targets_json["signed"]["targets"]["secondary_firmware.txt"]["version"] = "1";

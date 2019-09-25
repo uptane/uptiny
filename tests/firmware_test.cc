@@ -7,7 +7,7 @@
 #include "utilities/utils.h"
 
 TEST(firmware, verify_nostate) {
-  Json::Value targets_json = Utils::parseJSONFile("partial/tests/repo/repo/director/targets.json");
+  Json::Value targets_json = Utils::parseJSONFile("tests/repo/repo/director/targets.json");
   std::string targets_str = Utils::jsonToCanonicalStr(targets_json);
 
   uint16_t result = 0x0000;
@@ -17,7 +17,7 @@ TEST(firmware, verify_nostate) {
   ASSERT_EQ(result, RESULT_END_FOUND);
   state_set_targets(&targets);
 
-  std::string firmware = Utils::readFile("partial/tests/repo/repo/image/targets/secondary_firmware.txt");
+  std::string firmware = Utils::readFile("tests/repo/repo/image/targets/secondary_firmware.txt");
   ASSERT_TRUE(uptane_verify_firmware_init());
   uptane_verify_firmware_feed(reinterpret_cast<const uint8_t*>(firmware.c_str()), firmware.length());
   EXPECT_TRUE(uptane_verify_firmware_finalize());

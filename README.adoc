@@ -8,6 +8,32 @@ Interfaces to verification functions for root and targets metadata are in `root.
 
 Interfaces to functions that user of the library should define are definced in `common_data_api.h`, `crypto_api.h` and `state_api.h`.
 
+This repository has been spun off https://github.com/advancedtelematic/aktualizr[Aktualizr], refer to its documentation for more details about HERE OTA Connect and Uptane.
+
+== Building and running tests
+
+The build system is CMake.
+
+Right now, the library can either be built for the kea128 platform or natively for running tests.
+The following instructions are intended to be run from an empty CMake build directory (`mkdir build; cd build'`).
+
+=== Embedded platform
+
+```
+cmake .. -GNinja -DLIBUPTINY_MACHINE=kea128
+make
+```
+
+=== Native tests
+
+The test suite depends on https://github.com/advancedtelematic/aktualizr[Aktualizr], you will first need to run `git submodule update --init --recursive`
+
+```
+cmake ..
+make build_uptiny_tests
+ctest -L uptiny --output-on-failure
+```
+
 == Root metadata verification
 The interface to root metadata verifier is
 

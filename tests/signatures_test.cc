@@ -9,7 +9,7 @@
 #include "utilities/utils.h"
 
 TEST(tiny_signatures, parse_simple) {
-  Json::Value root_json = Utils::parseJSONFile("partial/tests/repo/repo/director/1.root.json");
+  Json::Value root_json = Utils::parseJSONFile("tests/repo/repo/director/1.root.json");
   Json::Value signatures = root_json["signatures"];
   std::string signatures_str = Utils::jsonToStr(signatures);
   crypto_key_and_signature_t sigs[10];
@@ -29,7 +29,7 @@ TEST(tiny_signatures, parse_simple) {
 }
 
 TEST(tiny_signatures, parse_one_of_two) {
-  Json::Value root_json = Utils::parseJSONFile("partial/tests/repo/repo/director/1.root.json");
+  Json::Value root_json = Utils::parseJSONFile("tests/repo/repo/director/1.root.json");
   Json::Value signatures = root_json["signatures"];
   Json::Value second_signature;
   second_signature["keyid"] = "5e16c18ad88a82257721d483383468e9a931bc46fe307e991c1c4bc96e62ee43";
@@ -54,7 +54,7 @@ TEST(tiny_signatures, parse_one_of_two) {
 }
 
 TEST(tiny_signatures, parse_plus_garbage) {
-  Json::Value root_json = Utils::parseJSONFile("partial/tests/repo/repo/director/1.root.json");
+  Json::Value root_json = Utils::parseJSONFile("tests/repo/repo/director/1.root.json");
   Json::Value signatures = root_json["signatures"];
   Json::Value second_signature;
   second_signature["keyid"] = "5e16c18ad88a82257721d483383468e9a931bc46fe307e991c1c4bc96e62ee43";

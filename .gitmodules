@@ -1,0 +1,9 @@
+[submodule "extern/isotp-c"]
+	path = extern/isotp-c
+	url = https://github.com/advancedtelematic/isotp-c.git
+[submodule "extern/RIOT"]
+	path = extern/RIOT
+	url = https://github.com/OYTIS/RIOT.git
+[submodule "extern/aktualizr"]
+	path = extern/aktualizr
+	url = https://github.com/advancedtelematic/aktualizr

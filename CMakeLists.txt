@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required (VERSION 3.5)
+
+project(uptiny)
 
 if(LIBUPTINY_MACHINE)
 	if(${LIBUPTINY_MACHINE} STREQUAL "kea128")
@@ -28,7 +30,7 @@ if(LIBUPTINY_MACHINE)
 
 		include_directories(include ${NXP_TOOLCHAIN_PATH}/S32DS/arm_ewl2/EWL_C/include ${KEA128LIB_PREFIX}/include machine/kea128/app)
 
-		set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/partial/machine/kea128/SKEAZ_flash.ld")
+		set(LINKER_SCRIPT "${PROJECT_SOURCE_DIR}/machine/kea128/SKEAZ_flash.ld")
                 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -T ${LINKER_SCRIPT} -Xlinker --gc-sections -Xlinker -Map=kea128.map")
 		set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
 
@@ -47,8 +49,6 @@ if(LIBUPTINY_MACHINE)
 		add_library(kea128_lib ${KEA128LIB_SOURCES})
 		add_executable(kea128_ms1.elf machine/kea128/app/ms1.c machine/kea128/app/flash_load.c machine/kea128/app/uds.c machine/kea128/app/isotp_allocate.c machine/kea128/app/script.c machine/kea128/app/example_session.c machine/kea128/app/script.c machine/kea128/app/isotp_dispatch.c  machine/kea128/startup/startup_SKEAZ1284.S)
 		target_link_libraries(kea128_ms1.elf kea128_lib)
-		target_link_libraries(kea128_ms1.elf isotp_lib)
-
 	endif()
 endif()
 
@@ -105,9 +105,6 @@ set(LIBUPTINY_DEMO_SOURCES libuptiny-demo/common_data.c
 
 set(LIBUPTINY_DEMO_HEADERS libuptiny-demo/flash.h)
 
-aktualizr_source_file_checks(${LIBUPTINY_SOURCES} ${LIBUPTINY_HEADERS})
-aktualizr_source_file_checks(${LIBUPTINY_DEMO_SOURCES} ${LIBUPTINY_DEMO_HEADERS})
-
 include_directories(. ed25519 libuptiny extern)
 add_library(uptiny STATIC ${LIBUPTINY_SOURCES} libuptiny/jsmn.c)
 target_compile_options(uptiny PUBLIC -Os -g -Wpedantic -Wno-long-long -DJSMN_STRICT -DJSMN_PARENT_LINKS)
@@ -131,43 +128,69 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   target_compile_options(isotp PUBLIC -Os -g -Wno-long-long -Wno-conversion -Wno-sign-conversion -Wno-gnu-designator -Wno-unused-parameter)
 endif ()
 
-# Machine is not set, building tests to run in Linux environment
 if(NOT LIBUPTINY_MACHINE)
-	enable_testing()
+    function(add_uptiny_test)
+        set(oneValueArgs NAME)
+        set(multiValueArgs SOURCES LIBRARIES ARGS LAUNCH_CMD)
+        cmake_parse_arguments(UPTINY_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+        set(TEST_TARGET t_${UPTINY_TEST_NAME})
+        set(WD WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+        add_executable(${TEST_TARGET} EXCLUDE_FROM_ALL ${UPTINY_TEST_SOURCES})
+        add_test(NAME test_${UPTINY_TEST_NAME}
+            COMMAND ${CMD_PREFIX} $<TARGET_FILE:${TEST_TARGET}> ${UPTINY_TEST_ARGS} ${GOOGLE_TEST_OUTPUT} ${WD})
+        set_tests_properties(test_${UPTINY_TEST_NAME} PROPERTIES LABELS "uptiny")
+        target_link_libraries(${TEST_TARGET} uptiny aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS} gtest gmock)
 
-        set(LIBUPTINY_TEST_ENVIRONMENT tests/test_state.cc tests/test_common_data.cc tests/test_crypto.cc ${ED25519_SOURCES})
+        add_dependencies(build_uptiny_tests ${TEST_TARGET})
+    endfunction()
+    add_custom_target(build_uptiny_tests)
 
-        set_source_files_properties(${LIBUPTINY_TEST_ENVIRONMENT} tests/signatures_test.cc tests/root_signed_test.cc tests/root_test.cc tests/targets_test.cc PROPERTIES COMPILE_FLAGS "-Wno-sign-compare -Wno-sign-conversion -Wno-conversion")
+    # Machine is not set, building tests to run in Linux environment
+    set(AKTUALIZR_DIR ${PROJECT_SOURCE_DIR}/extern/aktualizr)
+    add_definitions(-DBOOST_LOG_DYN_LINK)
+    add_subdirectory(${AKTUALIZR_DIR})
 
-        add_aktualizr_test(NAME tiny_base64 SOURCES libuptiny/base64.c tests/base64_test.cc)
+    include_directories(${AKTUALIZR_DIR}/src/libaktualizr)
+    include_directories(${AKTUALIZR_DIR}/third_party/googletest/googletest/include)
+    include_directories(${AKTUALIZR_DIR}/third_party/jsoncpp)
+    include_directories(${Boost_INCLUDE_DIR})
+    include_directories(${LIBOSTREE_INCLUDE_DIRS})
+    include_directories(${SQLITE3_INCLUDE_DIRS})
+    include_directories(${LIBP11_INCLUDE_DIR})
+    include_directories(${sodium_INCLUDE_DIR})
+    include_directories(${OPENSSL_INCLUDE_DIR})
+    include_directories(${CURL_INCLUDE_DIR})
+    include_directories(${LibArchive_INCLUDE_DIR})
 
-        add_aktualizr_test(NAME tiny_signatures
-                           SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/signatures_test.cc
-                           LIBRARIES uptiny
-                           PROJECT_WORKING_DIRECTORY)
+    enable_testing()
 
-        add_aktualizr_test(NAME tiny_signed_root
-                           SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_signed_test.cc
-                           LIBRARIES uptiny
-                           PROJECT_WORKING_DIRECTORY)
+    set(LIBUPTINY_TEST_ENVIRONMENT tests/test_state.cc tests/test_common_data.cc tests/test_crypto.cc ${ED25519_SOURCES})
 
-        add_aktualizr_test(NAME tiny_root
-                           SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_test.cc
-                           LIBRARIES uptiny
-                           PROJECT_WORKING_DIRECTORY)
+    set_source_files_properties(${LIBUPTINY_TEST_ENVIRONMENT} tests/signatures_test.cc tests/root_signed_test.cc tests/root_test.cc tests/targets_test.cc PROPERTIES COMPILE_FLAGS "-Wno-sign-compare -Wno-sign-conversion -Wno-conversion")
 
-        add_aktualizr_test(NAME tiny_targets
-                           SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/targets_test.cc
-                           LIBRARIES uptiny
-                           PROJECT_WORKING_DIRECTORY)
+    add_uptiny_test(NAME tiny_base64 SOURCES libuptiny/base64.c tests/base64_test.cc)
 
-        add_aktualizr_test(NAME tiny_firmware
-                           SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/firmware_test.cc
-                           LIBRARIES uptiny
-                           PROJECT_WORKING_DIRECTORY)
+    add_uptiny_test(NAME tiny_signatures
+        SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/signatures_test.cc
+        LIBRARIES uptiny)
 
-        add_aktualizr_test(NAME tiny_update
-                           SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/update_test.cc
-                           LIBRARIES uptiny
-                           PROJECT_WORKING_DIRECTORY)
+    add_uptiny_test(NAME tiny_signed_root
+        SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_signed_test.cc
+        LIBRARIES uptiny)
+
+    add_uptiny_test(NAME tiny_root
+        SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_test.cc
+        LIBRARIES uptiny)
+
+    add_uptiny_test(NAME tiny_targets
+        SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/targets_test.cc
+        LIBRARIES uptiny)
+
+    add_uptiny_test(NAME tiny_firmware
+        SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/firmware_test.cc
+        LIBRARIES uptiny)
+
+    add_uptiny_test(NAME tiny_update
+        SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/update_test.cc
+        LIBRARIES uptiny)
 endif()

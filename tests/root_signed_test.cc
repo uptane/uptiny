@@ -26,7 +26,7 @@ static void check_root(const uptane_root_t& root) {
 }
 
 TEST(tiny_root_signed, parse_simple) {
-  Json::Value root_json = Utils::parseJSONFile("partial/tests/repo/repo/director/1.root.json");
+  Json::Value root_json = Utils::parseJSONFile("tests/repo/repo/director/1.root.json");
   Json::Value signed_root = root_json["signed"];
   std::string signed_root_str = Utils::jsonToStr(signed_root);
 
@@ -43,7 +43,7 @@ TEST(tiny_root_signed, parse_simple) {
 }
 
 TEST(tiny_root_signed, parse_with_garbage) {
-  Json::Value root_json = Utils::parseJSONFile("partial/tests/repo/repo/director/1.root.json");
+  Json::Value root_json = Utils::parseJSONFile("tests/repo/repo/director/1.root.json");
   Json::Value signed_root = root_json["signed"];
   signed_root["newtopfield"]["key"] = "value";
   signed_root["anothernewtopfield"] = "anothervalue";

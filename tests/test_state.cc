@@ -20,8 +20,8 @@ class TestKeyReader {
  private:
   PublicKey public_key;
 };
-crypto_key_t device_pub_key = TestKeyReader(boost::filesystem::path("partial/tests/repo/keys/director/public.key")).getKey();
-crypto_key_t key = TestKeyReader(boost::filesystem::path("partial/tests/repo/keys/director/public.key")).getKey();
+crypto_key_t device_pub_key = TestKeyReader(boost::filesystem::path("tests/repo/keys/director/public.key")).getKey();
+crypto_key_t key = TestKeyReader(boost::filesystem::path("tests/repo/keys/director/public.key")).getKey();
 
 crypto_key_t *keys[] = {&key};
 
@@ -118,7 +118,7 @@ extern "C" {
   }
 
   void state_get_device_key(const crypto_key_t** pub, const uint8_t** priv) {
-    static std::string private_key = boost::algorithm::unhex(Utils::readFile("partial/tests/repo/keys/director/private.key"));
+    static std::string private_key = boost::algorithm::unhex(Utils::readFile("tests/repo/keys/director/private.key"));
     *priv = reinterpret_cast<const uint8_t*>(private_key.c_str());
     *pub = &device_pub_key;
   }

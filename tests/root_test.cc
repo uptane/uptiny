@@ -23,7 +23,7 @@ static void check_root(const uptane_root_t& root) {
 }
 
 TEST(tiny_root, parse_simple) {
-  Json::Value root_json = Utils::parseJSONFile("partial/tests/repo/repo/director/1.root.json");
+  Json::Value root_json = Utils::parseJSONFile("tests/repo/repo/director/1.root.json");
   std::string root_str = Utils::jsonToCanonicalStr(root_json);
   static uptane_root_t root;
   ASSERT_TRUE(uptane_parse_root(root_str.c_str(), root_str.length(), &root));
